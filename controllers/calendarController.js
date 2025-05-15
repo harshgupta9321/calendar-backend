@@ -1,24 +1,23 @@
-// controllers/calendarController.js
 import Event from '../models/Event.js';
 import School from '../models/School.js';
 
 // Get all events for a specific school or for all schools
 export const getEventsBySchool = async (req, res) => {
   try {
-    const schoolId = req.params.schoolId || null;
+    const schoolId = req.params.schoolId;
 
-    // Case: No schoolId provided => Return events for all schools (school: null)
     if (!schoolId) {
+      // No schoolId provided => Return events for all schools (school: null)
       const events = await Event.find({ school: null }).sort({ date: 1 });
 
       const calendarEvents = events.map(event => ({
         title: event.title,
-        start: event.date,
+        date: event.date,
         school: null,
         allDay: true,
       }));
 
-      return res.json({ events: calendarEvents });
+      return res.json(calendarEvents);
     }
 
     // Validate schoolId
@@ -36,37 +35,61 @@ export const getEventsBySchool = async (req, res) => {
 
     const calendarEvents = events.map(event => ({
       title: event.title,
-      start: event.date,
+      date: event.date,
       school: school.name,
       allDay: true,
     }));
 
-    res.json({ events: calendarEvents });
+    res.json(calendarEvents);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to get events' });
   }
 };
 
-
 // Update an event by ID
 export const updateEvent = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const { title, date, school } = req.body;
 
-    const updatedEvent = await Event.findByIdAndUpdate(id, updates, { new: true });
-
-    if (!updatedEvent) {
-      return res.status(404).json({ message: 'Event not found' });
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid event ID.' });
     }
 
-    res.json({ message: 'Event updated', event: updatedEvent });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to update event' });
+    // Find the event
+    const event = await Event.findById(id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found.' });
+    }
+
+    // Check school ownership
+    if (event.school?.toString() !== school) {
+      return res.status(403).json({ message: 'You can only update events for the selected school.' });
+    }
+
+    // Apply updates
+    if (title) event.title = title;
+    if (date) {
+      const parsedDate = new Date(date);
+      if (!isNaN(parsedDate)) {
+        event.date = parsedDate;
+      } else {
+        return res.status(400).json({ message: 'Invalid date format.' });
+      }
+    }
+
+    // Save updated event
+    const updatedEvent = await event.save();
+    return res.status(200).json({ message: 'Event updated successfully.', event: updatedEvent });
+
+  } catch (err) {
+    console.error('Error updating event:', err);
+    return res.status(500).json({ message: 'Internal server error.' });
   }
 };
+
 
 // Delete an event by ID
 export const deleteEvent = async (req, res) => {

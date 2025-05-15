@@ -1,7 +1,6 @@
-// routes/calendarRoutes.js
 import express from 'express';
 import multer from 'multer';
-import { parseExcel } from '../utils/excelParser.js'; // Assuming this is where your Excel parsing logic resides
+import { parseExcel } from '../utils/excelParser.js'; // Your Excel parsing logic
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { checkRole } from '../middlewares/roleMiddleware.js';
 import Event from '../models/Event.js';
@@ -30,7 +29,6 @@ router.post(
       const events = parseExcel(buffer);
       console.log('Parsed Events:', events);
 
-      // Loop through the parsed events and save them
       for (const event of events) {
         const { date, title, school } = event;
         console.log('School in row:', school);
@@ -48,7 +46,7 @@ router.post(
         const newEvent = new Event({
           title,
           date: new Date(date),
-          school: schoolId, // null if 'allschool'
+          school: schoolId,
         });
 
         await newEvent.save();
@@ -62,15 +60,16 @@ router.post(
   }
 );
 
-// ✅ Get events by school
+// ✅ Route when no schoolId is provided (for all-school/global events)
+router.get('/', getEventsBySchool);
+
+// ✅ Get events by schoolId (must come after `/` route)
 router.get('/:schoolId', getEventsBySchool);
 
-// Route when no schoolId is provided (for all-school/global events)
-router.get('/', getEventsBySchool);
 // ✅ Update event by ID
-router.put('/:id', authMiddleware, updateEvent);
+router.put('/:id', updateEvent);
 
 // ✅ Delete event by ID
-router.delete('/:id', authMiddleware, deleteEvent);
+router.delete('/:id', deleteEvent);
 
 export default router;
