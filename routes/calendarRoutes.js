@@ -8,6 +8,7 @@ import School from '../models/School.js';
 import {
   getEventsBySchool,
   updateEvent,
+  createEvent,
   deleteEvent
 } from '../controllers/calendarController.js';
 
@@ -68,6 +69,9 @@ router.get('/:schoolId', getEventsBySchool);
 
 // ✅ Update event by ID
 router.put('/:id', updateEvent);
+
+//create event
+router.post('/create', createEvent);
 
 // ✅ Delete event by ID
 router.delete('/:id', deleteEvent);
