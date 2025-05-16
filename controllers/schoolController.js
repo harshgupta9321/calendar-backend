@@ -79,7 +79,7 @@ export const generateLink = async (req, res) => {
     const school = await School.findById(schoolId);
     if (!school) return res.status(404).json({ msg: 'School not found' });
 
-    const link = `${process.env.FRONTEND_URL}/calendar/${school._id}`;
+    const link = `${process.env.FRONTEND_URL}/school/${school._id}`;
     res.json({ link });
   } catch (error) {
     console.error(error);
