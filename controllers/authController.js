@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const login = async (req, res) => {
-  console.log(req.body)
+
   const { email, password } = req.body; // Changed from username to email
   const user = await User.findOne({ email }); // Changed from username to email
 
