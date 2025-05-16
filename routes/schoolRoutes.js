@@ -12,7 +12,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.post('/upload-all', upload.single('file'), uploadAllSchoolExcel); // Upload Excel for all schools
 router.post('/create', createSchool);  // Create a new school
 
-router.get('/generate-link/:schoolId', authMiddleware, generateLink);
+router.get('/generate-link/:schoolId', generateLink);
 router.get('/all', getAllSchools);
 
 
