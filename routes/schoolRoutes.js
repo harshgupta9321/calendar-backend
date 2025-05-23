@@ -11,7 +11,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 router.post('/upload-all', upload.single('file'), uploadAllSchoolExcel); // Upload Excel for all schools
 router.post('/create', createSchool);  // Create a new school
-router.delete('/:schoolId',checkRole("admin"), deleteSchool);  // DELETE /schools/:schoolId
+router.delete('/:schoolId', deleteSchool);  // DELETE /schools/:schoolId
 router.get('/generate-link/:schoolId', generateLink);
 router.get('/all', getAllSchools);
 
