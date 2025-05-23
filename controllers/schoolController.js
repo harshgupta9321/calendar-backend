@@ -68,6 +68,29 @@ export const uploadAllSchoolExcel = async (req, res) => {
     // Step 4: Respond with success message
     res.status(201).json({ message: 'School created and events inherited' });
   };
+
+  export const deleteSchool = async (req, res) => {
+    const { schoolId } = req.params;
+  
+    try {
+      // Delete the school
+      console.log("Received delete request for:", req.params.schoolId);
+      const deletedSchool = await School.findByIdAndDelete(schoolId);
+  
+      if (!deletedSchool) {
+        return res.status(404).json({ message: 'School not found' });
+      }
+  
+      // Optionally delete all events for that school
+      await Event.deleteMany({ school: schoolId });
+  
+      res.status(200).json({ message: 'School and related events deleted successfully' });
+    } catch (error) {
+      console.error('Delete school error:', error);
+      res.status(500).json({ message: 'Failed to delete school', error: error.message });
+    }
+  };
+  
   
   
   
