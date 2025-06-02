@@ -20,6 +20,28 @@ export const login = async (req, res) => {
   res.json({ token, role: user.role });
 };
 
+// export const createManager = async (req, res) => {
+//   const { email, password, role } = req.body;
+
+//   if (req.user.role !== 'admin') {
+//     return res.status(403).json({ message: 'Only admin can create credentials' });
+//   }
+
+//   const hashedPassword = await bcrypt.hash(password, 10);
+//   const user = new User({ email, password: hashedPassword, role });
+
+//   try {
+//     await user.save();
+//     res.status(201).json({ message: `${role} created` });
+//   } catch (error) {
+//     // Handle errors like duplicate email
+//     if (error.code === 11000) {
+//       return res.status(400).json({ message: 'Email already exists' });
+//     }
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
+
 export const createManager = async (req, res) => {
   const { email, password, role } = req.body;
 
@@ -27,20 +49,31 @@ export const createManager = async (req, res) => {
     return res.status(403).json({ message: 'Only admin can create credentials' });
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const user = new User({ email, password: hashedPassword, role });
-
   try {
-    await user.save();
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      // Update the user's role and password
+      existingUser.role = role;
+      existingUser.password = hashedPassword;
+      await existingUser.save();
+
+      return res.status(200).json({ message: 'User updated with new role and password' });
+    }
+
+    // Create new user if not found
+    const newUser = new User({ email, password: hashedPassword, role });
+    await newUser.save();
+
     res.status(201).json({ message: `${role} created` });
   } catch (error) {
-    // Handle errors like duplicate email
-    if (error.code === 11000) {
-      return res.status(400).json({ message: 'Email already exists' });
-    }
+    console.error('Error creating/updating manager:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 export const register = async (req, res) => {
   const { email, password, role } = req.body;
