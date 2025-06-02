@@ -3,35 +3,69 @@ import School from '../models/School.js';
 import Event from '../models/Event.js';
 import { parseExcel } from '../utils/excelParser.js';
 
+// export const uploadAllSchoolExcel = async (req, res) => {
+//     try {
+//       const buffer = req.file.buffer;
+//       const allSchoolJson = parseExcel(buffer);  // Function to parse Excel file
+  
+//       // Log the parsed data to inspect it
+//       console.log('Parsed All-School JSON:', allSchoolJson);
+  
+//       if (!Array.isArray(allSchoolJson)) {
+//         return res.status(400).json({ message: 'Uploaded file is not valid' });
+//       }
+  
+//       // Continue with saving the events to the database
+//       for (const row of allSchoolJson) {
+//         const event = new Event({
+//           title: row.title || row.event,  // Handle column name mismatch
+//           date: new Date(row.date),
+//           school: null,  // All-school events
+//         });
+//         await event.save();
+//       }
+  
+//       res.status(200).json({ message: 'All-school events uploaded' });
+//     } catch (error) {
+//       console.error('Upload all-school Excel error:', error);
+//       res.status(500).json({ message: 'Failed to upload all-school events', error: error.message });
+//     }
+//   };
+  
+
 export const uploadAllSchoolExcel = async (req, res) => {
-    try {
-      const buffer = req.file.buffer;
-      const allSchoolJson = parseExcel(buffer);  // Function to parse Excel file
-  
-      // Log the parsed data to inspect it
-      console.log('Parsed All-School JSON:', allSchoolJson);
-  
-      if (!Array.isArray(allSchoolJson)) {
-        return res.status(400).json({ message: 'Uploaded file is not valid' });
-      }
-  
-      // Continue with saving the events to the database
-      for (const row of allSchoolJson) {
-        const event = new Event({
-          title: row.title || row.event,  // Handle column name mismatch
-          date: new Date(row.date),
-          school: null,  // All-school events
-        });
-        await event.save();
-      }
-  
-      res.status(200).json({ message: 'All-school events uploaded' });
-    } catch (error) {
-      console.error('Upload all-school Excel error:', error);
-      res.status(500).json({ message: 'Failed to upload all-school events', error: error.message });
+  try {
+    const buffer = req.file.buffer;
+    const allSchoolJson = parseExcel(buffer);  // Function to parse Excel file
+
+    // Log the parsed data to inspect it
+    console.log('Parsed All-School JSON:', allSchoolJson);
+
+    if (!Array.isArray(allSchoolJson)) {
+      return res.status(400).json({ message: 'Uploaded file is not valid' });
     }
-  };
-  
+
+    // Delete existing all-school events
+    await Event.deleteMany({ school: null });
+    console.log("deleted")
+
+    // Continue with saving the new events to the database
+    for (const row of allSchoolJson) {
+      const event = new Event({
+        title: row.title || row.event,  // Handle column name mismatch
+        date: new Date(row.date),
+        school: null,  // All-school events
+      });
+      await event.save();
+    }
+
+    res.status(200).json({ message: 'All-school events uploaded' });
+  } catch (error) {
+    console.error('Upload all-school Excel error:', error);
+    res.status(500).json({ message: 'Failed to upload all-school events', error: error.message });
+  }
+};
+
 
   export const createSchool = async (req, res) => {
     const { name } = req.body;
